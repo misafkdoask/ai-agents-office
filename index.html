@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agents Office — Built with Claude Code</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#12141f;--text:#e8ecf8;--dim:#6872a0;--blue:#4B8BF5;--green:#1CE669;--purple:#9B59B6;--orange:#F7941D;--cyan:#00D4FF;--gold:#FFD700;--core:#7c6aff;--red:#ff4757}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;overflow-x:hidden;min-height:100vh}
+header{text-align:center;padding:40px 24px 10px}
+header h1{font-family:'Press Start 2P',monospace;font-size:clamp(14px,2.5vw,24px);color:#fff;margin-bottom:8px;text-shadow:0 0 20px rgba(124,106,255,0.5),2px 2px 0 #1a0a3e;letter-spacing:1px;line-height:1.6}
+header p{font-size:13px;color:var(--dim);font-family:'JetBrains Mono',monospace}
+header p strong{color:var(--core)}
+.office-wrap{display:flex;justify-content:center;padding:20px;overflow-x:auto}
+.office{position:relative;width:1100px;height:780px;flex-shrink:0;cursor:default}
+canvas#game{width:1100px;height:780px;image-rendering:pixelated;border-radius:4px;box-shadow:0 8px 60px rgba(0,0,0,0.6)}
+.tip{position:fixed;z-index:1000;background:#0d0f1e;border:2px solid #2a2d50;border-radius:6px;padding:12px 14px;max-width:250px;pointer-events:none;opacity:0;transition:opacity .15s;box-shadow:0 6px 30px rgba(0,0,0,0.7)}
+.tip.on{opacity:1}
+.tip-name{font-family:'Press Start 2P',monospace;font-size:8px;margin-bottom:5px;line-height:1.5}
+.tip-role{font-size:11px;color:var(--dim);margin-bottom:6px;line-height:1.4}
+.tip-tools{display:flex;flex-wrap:wrap;gap:3px}
+.tip-t{font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 6px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:3px;color:var(--dim)}
+.info-bar{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;padding:20px 24px;max-width:1100px;margin:0 auto}
+.info-b{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);padding:5px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:6px}
+.info-d{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:bk 2s ease-in-out infinite}
+@keyframes bk{0%,100%{opacity:1}50%{opacity:.3}}
+.legend{display:flex;justify-content:center;flex-wrap:wrap;gap:14px;padding:6px 24px 16px;max-width:1100px;margin:0 auto}
+.leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--dim)}
+.leg-c{width:10px;height:10px;border-radius:2px}
+footer{text-align:center;padding:16px 24px 40px;font-size:12px;color:var(--dim);font-family:'JetBrains Mono',monospace}
+footer a{color:var(--core);text-decoration:none}
+footer a:hover{color:#fff}
+</style>
+</head>
+<body>
+<header>
+  <h1>AI AGENTS OFFICE</h1>
+  <p>Multi-agent production system built with <strong>Claude Code</strong></p>
+</header>
+<div class="office-wrap">
+<div class="office" id="office">
+  <canvas id="game" width="1100" height="780"></canvas>
+</div>
+</div>
+<div class="legend">
+  <div class="leg"><div class="leg-c" style="background:var(--blue)"></div>Research</div>
+  <div class="leg"><div class="leg-c" style="background:var(--green)"></div>Content</div>
+  <div class="leg"><div class="leg-c" style="background:var(--purple)"></div>Creative</div>
+  <div class="leg"><div class="leg-c" style="background:var(--orange)"></div>Operations</div>
+  <div class="leg"><div class="leg-c" style="background:var(--cyan)"></div>Engineering</div>
+  <div class="leg"><div class="leg-c" style="background:var(--gold)"></div>Management</div>
+</div>
+<div class="info-bar">
+  <div class="info-b"><div class="info-d"></div>Playwright</div>
+  <div class="info-b"><div class="info-d"></div>Telethon</div>
+  <div class="info-b"><div class="info-d"></div>Figma</div>
+  <div class="info-b"><div class="info-d"></div>PowerPoint</div>
+  <div class="info-b"><div class="info-d"></div>GitHub</div>
+  <div class="info-b"><div class="info-d"></div>Tavily</div>
+  <div class="info-b"><div class="info-d"></div>Fetch</div>
+  <div class="info-b"><div class="info-d"></div>Gemini API</div>
+</div>
+<footer>Built with Claude Code by Anthropic &mdash; <a href="https://github.com/misafkdoask/ai-agents-office">Source</a></footer>
+<div class="tip" id="tip">
+  <div class="tip-name" id="tn"></div>
+  <div class="tip-role" id="tr"></div>
+  <div class="tip-tools" id="tt"></div>
+</div>
+<script>
+const cv=document.getElementById('game'),cx=cv.getContext('2d'),W=1100,H=780;
+cx.imageSmoothingEnabled=false;
+let frame=0,hovered=null;
+
+// ============ PALETTE ============
+function shade(hex,amt){
+  let r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  r=Math.max(0,Math.min(255,r+amt));g=Math.max(0,Math.min(255,g+amt));b=Math.max(0,Math.min(255,b+amt));
+  return `rgb(${r},${g},${b})`;
+}
+
+const P={
+  outline:'#1a1425',
+  floorA:'#282b42',floorB:'#2e3148',floorLine:'#222538',
+  wallBot:'#353958',wallMid:'#3f4470',wallTop:'#474d80',wallTrim:'#555a8e',
+  deskSide:'#3a3050',deskTop:'#524870',deskTopHi:'#635880',deskFront:'#2e2640',
+  monFrame:'#3a3a4a',monScreen:'#0c1020',monBezel:'#2a2a38',
+  chairBase:'#2e2844',chairSeat:'#3a3460',chairBack:'#44406e',chairHi:'#504c78',
+  skinBase:'#e8c8a8',skinHi:'#f0d8bc',skinShade:'#c8a080',skinOutline:'#8a6848',
+  pantsBase:'#2a2844',pantsShade:'#201c34',
+  shoeBase:'#1e1a2c',
+};
+
+// ============ AGENTS ============
+const agents=[
+  // RESEARCH (x:20-310, y:20-240)
+  {id:'analyst',name:'Market Analyst',dept:'Research',role:'Monitors 50+ channels, collects trends and signals',
+   tools:['Telethon','Tavily','Fetch'],color:'#4B8BF5',hair:'#2a1a10',hairStyle:'short',
+   x:80,y:105,sitting:true,deskX:120,deskY:80},
+  {id:'intel',name:'Competitive Intel',dept:'Research',role:'Tracks competitors, market shifts, emerging narratives',
+   tools:['Playwright','Tavily','GitHub'],color:'#4B8BF5',hair:'#6b4226',hairStyle:'wavy',
+   x:80,y:185,sitting:true,deskX:120,deskY:160},
+
+  // CONTENT (x:370-660, y:20-240)
+  {id:'strategist',name:'Strategist',dept:'Content',role:'Content calendar, topic planning, editorial direction',
+   tools:['Memory','Dashboard API'],color:'#1CE669',hair:'#d4a537',hairStyle:'long',
+   x:430,y:90,sitting:true,deskX:470,deskY:66},
+  {id:'copywriter',name:'Copywriter',dept:'Content',role:'Brand voice, multi-format content across platforms',
+   tools:['Memory','Brand Brief'],color:'#1CE669',hair:'#1a1a2e',hairStyle:'short',
+   x:430,y:160,sitting:true,deskX:470,deskY:136},
+  {id:'translator',name:'Translator',dept:'Content',role:'Platform adaptation and language localization',
+   tools:['Claude API','Fetch'],color:'#1CE669',hair:'#a83232',hairStyle:'pony',
+   x:430,y:205,sitting:true,deskX:470,deskY:182},
+
+  // CREATIVE (x:720-1080, y:20-240)
+  {id:'designer',name:'Visual Designer',dept:'Creative',role:'AI image generation, brand overlays, asset production',
+   tools:['Gemini API','Pillow','Figma'],color:'#9B59B6',hair:'#5a3020',hairStyle:'wavy',
+   x:780,y:105,sitting:true,deskX:820,deskY:80},
+  {id:'presenter',name:'Presenter',dept:'Creative',role:'Pitch decks, presentations, visual storytelling',
+   tools:['PowerPoint MCP','python-pptx','Figma'],color:'#9B59B6',hair:'#d4a537',hairStyle:'long',
+   x:780,y:185,sitting:true,deskX:820,deskY:160},
+
+  // ENGINEERING (x:20-310, y:290-510)
+  {id:'integrator',name:'Integration Engineer',dept:'Engineering',role:'MCP servers, API connections, protocol bridges',
+   tools:['MCP Protocol','Node.js','Python'],color:'#00D4FF',hair:'#1a1a2e',hairStyle:'short',
+   x:80,y:365,sitting:true,deskX:120,deskY:340},
+  {id:'pipeline',name:'Pipeline Builder',dept:'Engineering',role:'Automation workflows, data pipelines, orchestration',
+   tools:['Claude Code','Bash','Cron'],color:'#00D4FF',hair:'#8899aa',hairStyle:'short',
+   x:80,y:445,sitting:true,deskX:120,deskY:420},
+  {id:'auditor',name:'QA Auditor',dept:'Engineering',role:'Brand compliance, QA checks, output validation',
+   tools:['Memory','Brand Brief'],color:'#00D4FF',hair:'#6b4226',hairStyle:'wavy',
+   x:220,y:405,sitting:true,deskX:260,deskY:380},
+
+  // CLAUDE CODE HQ (x:370-660, y:290-480)
+  // walkers here
+
+  // OPERATIONS (x:720-1080, y:290-510)
+  {id:'publisher',name:'Publisher',dept:'Operations',role:'Auto-posting, scheduling, cross-platform distribution',
+   tools:['Telethon','Playwright','GitHub'],color:'#F7941D',hair:'#2a1a10',hairStyle:'short',
+   x:780,y:365,sitting:true,deskX:820,deskY:340},
+  {id:'community',name:'Community Manager',dept:'Operations',role:'Engagement monitoring, responses, audience growth',
+   tools:['Telethon','Playwright'],color:'#F7941D',hair:'#a83232',hairStyle:'pony',
+   x:780,y:445,sitting:true,deskX:820,deskY:420},
+  {id:'analytics',name:'Analytics',dept:'Operations',role:'Performance metrics, ROI tracking, reporting',
+   tools:['Dashboard API','Fetch'],color:'#F7941D',hair:'#d4a537',hairStyle:'long',
+   x:920,y:405,sitting:true,deskX:960,deskY:380},
+
+  // MANAGEMENT (x:20-310, y:555-750)
+  {id:'pm',name:'Project Manager',dept:'Management',role:'Dashboard, coordination, cost tracking, scheduling',
+   tools:['Dashboard API','Node.js'],color:'#FFD700',hair:'#2a1a10',hairStyle:'short',
+   x:80,y:630,sitting:true,deskX:120,deskY:606},
+  {id:'memory',name:'Memory Keeper',dept:'Management',role:'Persistent context, brand knowledge, cross-session state',
+   tools:['Memory System','Markdown'],color:'#FFD700',hair:'#8899aa',hairStyle:'short',
+   x:220,y:630,sitting:true,deskX:260,deskY:606},
+
+  // WALKERS
+  {id:'w1',name:'Data Courier',dept:'Core',role:'Transfers data between departments',
+   tools:['Internal Bus'],color:'#7c6aff',hair:'#5a3020',hairStyle:'short',
+   x:515,y:380,walking:true,
+   walkPath:[{x:515,y:380},{x:515,y:180},{x:380,y:180},{x:515,y:180},{x:515,y:380},{x:650,y:380},{x:515,y:380}]},
+  {id:'w2',name:'Data Courier',dept:'Core',role:'Syncs context across all departments',
+   tools:['Internal Bus'],color:'#7c6aff',hair:'#d4a537',hairStyle:'pony',
+   x:515,y:420,walking:true,
+   walkPath:[{x:515,y:420},{x:200,y:420},{x:200,y:180},{x:515,y:180},{x:900,y:180},{x:900,y:420},{x:515,y:420}]},
+];
+
+// ============ ROOMS ============
+const rooms=[
+  {name:'RESEARCH',x:18,y:18,w:300,h:230,color:'#4B8BF5'},
+  {name:'CONTENT',x:368,y:18,w:300,h:230,color:'#1CE669'},
+  {name:'CREATIVE',x:718,y:18,w:364,h:230,color:'#9B59B6'},
+  {name:'ENGINEERING',x:18,y:288,w:300,h:230,color:'#00D4FF'},
+  {name:'CLAUDE CODE HQ',x:368,y:288,w:300,h:200,color:'#7c6aff'},
+  {name:'OPERATIONS',x:718,y:288,w:364,h:230,color:'#F7941D'},
+  {name:'MANAGEMENT',x:18,y:558,w:300,h:204,color:'#FFD700'},
+  {name:'SERVER ROOM',x:368,y:528,w:300,h:234,color:'#7c6aff'},
+  {name:'BREAK ROOM',x:718,y:558,w:364,h:204,color:'#ff4757'},
+];
+
+// ============ DRAW PIXEL RECT WITH OUTLINE ============
+function pxRect(x,y,w,h,fill,outline){
+  if(outline){cx.fillStyle=outline;cx.fillRect(x-1,y-1,w+2,h+2);}
+  cx.fillStyle=fill;cx.fillRect(x,y,w,h);
+}
+
+// ============ DRAW ROOM ============
+function drawRoom(r){
+  // Floor
+  cx.fillStyle=P.floorA;
+  cx.fillRect(r.x,r.y,r.w,r.h);
+  // Floor tiles
+  for(let tx=r.x;tx<r.x+r.w;tx+=24){
+    for(let ty=r.y;ty<r.y+r.h;ty+=24){
+      cx.fillStyle=((tx+ty)%48===0)?P.floorB:P.floorA;
+      cx.fillRect(tx,ty,24,24);
+    }
+  }
+  // Floor grid lines
+  cx.fillStyle=P.floorLine;
+  for(let tx=r.x;tx<=r.x+r.w;tx+=24) cx.fillRect(tx,r.y,1,r.h);
+  for(let ty=r.y;ty<=r.y+r.h;ty+=24) cx.fillRect(r.x,ty,r.w,1);
+
+  // Walls (top wall with depth)
+  cx.fillStyle=P.wallBot;cx.fillRect(r.x,r.y,r.w,28);
+  cx.fillStyle=P.wallMid;cx.fillRect(r.x,r.y,r.w,18);
+  cx.fillStyle=P.wallTop;cx.fillRect(r.x,r.y,r.w,8);
+  cx.fillStyle=P.wallTrim;cx.fillRect(r.x,r.y+27,r.w,2);
+
+  // Left wall strip
+  cx.fillStyle=P.wallBot;cx.fillRect(r.x,r.y,4,r.h);
+  cx.fillStyle=P.wallMid;cx.fillRect(r.x,r.y,2,r.h);
+
+  // Room label
+  cx.fillStyle=r.color;
+  cx.globalAlpha=0.9;
+  cx.font='7px "Press Start 2P"';
+  cx.fillText(r.name,r.x+12,r.y+16);
+  cx.globalAlpha=1;
+}
+
+// ============ DRAW DESK (detailed) ============
+function drawDesk(x,y){
+  // Shadow
+  cx.fillStyle='rgba(0,0,0,0.15)';
+  cx.fillRect(x+2,y+30,50,4);
+  // Legs
+  pxRect(x+2,y+22,3,12,P.deskFront,P.outline);
+  pxRect(x+43,y+22,3,12,P.deskFront,P.outline);
+  // Front panel
+  pxRect(x,y+18,48,10,P.deskFront,P.outline);
+  cx.fillStyle=P.deskSide;cx.fillRect(x+1,y+20,46,2); // detail line
+  // Desktop surface
+  pxRect(x-2,y+12,52,8,P.deskTop,P.outline);
+  cx.fillStyle=P.deskTopHi;cx.fillRect(x-1,y+13,50,2); // highlight
+  // Drawer handle
+  cx.fillStyle='#666';cx.fillRect(x+18,y+22,10,2);
+}
+
+// ============ DRAW MONITOR (detailed) ============
+function drawMon(x,y,glowH,glowS){
+  const h=glowH||200,s=glowS||'80%';
+  // Stand base
+  cx.fillStyle=P.monBezel;cx.fillRect(x+10,y+8,12,3);
+  // Stand neck
+  cx.fillStyle=P.monFrame;cx.fillRect(x+14,y-2,4,11);
+  // Monitor body (outline first)
+  pxRect(x,y-26,32,26,P.monFrame,P.outline);
+  // Bezel
+  cx.fillStyle=P.monBezel;cx.fillRect(x+1,y-25,30,24);
+  // Screen
+  cx.fillStyle=P.monScreen;cx.fillRect(x+3,y-23,26,20);
+  // Screen content animated
+  const t=frame*0.06+x;
+  const flk=Math.sin(t);
+  // Code lines
+  for(let i=0;i<5;i++){
+    const w=8+Math.sin(t+i*3)*6;
+    const bright=0.25+Math.sin(t*0.5+i)*0.15;
+    cx.fillStyle=`hsla(${h},${s},60%,${bright})`;
+    cx.fillRect(x+5,y-21+i*4,w,2);
+  }
+  // Screen glow
+  cx.fillStyle=`hsla(${h},${s},50%,0.05)`;
+  cx.fillRect(x+3,y-23,26,20);
+  // Power LED
+  cx.fillStyle=flk>0?'#0f0':'#040';
+  cx.fillRect(x+14,y-1,3,2);
+}
+
+// ============ DRAW OFFICE CHAIR (detailed) ============
+function drawChair(x,y){
+  // Wheel base
+  cx.fillStyle='#222';
+  cx.fillRect(x+1,y+20,18,3);
+  cx.fillRect(x+4,y+22,3,2);cx.fillRect(x+13,y+22,3,2);
+  // Cylinder
+  cx.fillStyle='#333';cx.fillRect(x+8,y+14,4,7);
+  // Seat
+  pxRect(x,y+8,20,8,P.chairSeat,P.outline);
+  cx.fillStyle=P.chairHi;cx.fillRect(x+1,y+9,18,2);
+  // Backrest
+  pxRect(x+2,y-6,16,16,P.chairBack,P.outline);
+  cx.fillStyle=P.chairHi;cx.fillRect(x+3,y-5,14,2);
+  // Armrest
+  cx.fillStyle=P.chairBase;
+  cx.fillRect(x-2,y+6,4,3);cx.fillRect(x+18,y+6,4,3);
+}
+
+// ============ DRAW PERSON (detailed pixel art) ============
+function drawPerson(a,time){
+  const x=Math.round(a.x),y=Math.round(a.y);
+  const bob=a.sitting?0:Math.round(Math.sin(time*0.004+a.x)*1.5);
+  const isH=hovered===a;
+  const blink=Math.sin(time*0.0025+a.x*7)>0.92;
+  const typing=a.sitting?Math.sin(time*0.012+a.x):0;
+
+  // Shadow on floor
+  cx.fillStyle='rgba(0,0,0,0.18)';
+  cx.beginPath();
+  cx.ellipse(x+6,y+36+bob,10,3,0,0,Math.PI*2);
+  cx.fill();
+
+  // === SHOES ===
+  if(!a.sitting){
+    const step=Math.round(Math.sin(time*0.008+a.x)*3);
+    pxRect(x-1,y+30+bob+step,7,4,P.shoeBase,P.outline);
+    pxRect(x+7,y+30+bob-step,7,4,P.shoeBase,P.outline);
+  }else{
+    pxRect(x+1,y+30,6,4,P.shoeBase,P.outline);
+    pxRect(x+7,y+30,6,4,P.shoeBase,P.outline);
+  }
+
+  // === LEGS / PANTS ===
+  if(!a.sitting){
+    const step=Math.round(Math.sin(time*0.008+a.x)*3);
+    pxRect(x,y+20+bob+step,5,12,P.pantsBase,P.outline);
+    pxRect(x+8,y+20+bob-step,5,12,P.pantsBase,P.outline);
+  }else{
+    // Sitting: legs bent forward
+    pxRect(x+1,y+20,5,12,P.pantsBase,P.outline);
+    pxRect(x+7,y+20,5,12,P.pantsBase,P.outline);
+  }
+
+  // === TORSO ===
+  const shirtColor=a.color;
+  const shirtDark=shade(a.color,-40);
+  const shirtHi=shade(a.color,30);
+
+  pxRect(x-1,y+4+bob,16,18,shirtColor,P.outline);
+  // Shirt shading
+  cx.fillStyle=shirtDark;cx.fillRect(x,y+16+bob,14,5);
+  cx.fillStyle=shirtHi;cx.fillRect(x,y+5+bob,14,3);
+  // Collar
+  cx.fillStyle=shade(a.color,50);
+  cx.fillRect(x+3,y+3+bob,3,3);cx.fillRect(x+8,y+3+bob,3,3);
+
+  // === ARMS ===
+  if(a.sitting){
+    const ty=typing>0?1:0;
+    // Left arm reaching to desk
+    pxRect(x-5,y+6+bob,5,14+ty,shirtColor,P.outline);
+    cx.fillStyle=P.skinBase;cx.fillRect(x-5,y+18+bob+ty,5,4);
+    // Right arm
+    pxRect(x+14,y+6+bob,5,14-ty,shirtColor,P.outline);
+    cx.fillStyle=P.skinBase;cx.fillRect(x+14,y+18+bob-ty,5,4);
+  }else{
+    const sw=Math.round(Math.sin(time*0.008+a.x)*3);
+    pxRect(x-5,y+5+bob+sw,5,14,shirtColor,P.outline);
+    cx.fillStyle=P.skinBase;cx.fillRect(x-5,y+17+bob+sw,5,4);
+    pxRect(x+14,y+5+bob-sw,5,14,shirtColor,P.outline);
+    cx.fillStyle=P.skinBase;cx.fillRect(x+14,y+17+bob-sw,5,4);
+  }
+
+  // === HEAD ===
+  // Neck
+  cx.fillStyle=P.skinShade;cx.fillRect(x+4,y+bob,6,5);
+  // Head shape
+  pxRect(x+1,y-14+bob,12,16,P.skinBase,P.skinOutline);
+  // Face highlight
+  cx.fillStyle=P.skinHi;cx.fillRect(x+2,y-12+bob,10,4);
+  // Cheek shading
+  cx.fillStyle=P.skinShade;
+  cx.fillRect(x+2,y-4+bob,3,3);cx.fillRect(x+9,y-4+bob,3,3);
+
+  // Eyes
+  if(blink){
+    cx.fillStyle='#444';
+    cx.fillRect(x+3,y-8+bob,3,1);cx.fillRect(x+8,y-8+bob,3,1);
+  }else{
+    // Eye whites
+    cx.fillStyle='#fff';
+    cx.fillRect(x+3,y-10+bob,4,4);cx.fillRect(x+8,y-10+bob,4,4);
+    // Pupils
+    cx.fillStyle='#1a1a2e';
+    cx.fillRect(x+4,y-9+bob,2,3);cx.fillRect(x+9,y-9+bob,2,3);
+    // Eye highlight
+    cx.fillStyle='#fff';
+    cx.fillRect(x+5,y-10+bob,1,1);cx.fillRect(x+10,y-10+bob,1,1);
+  }
+  // Eyebrows
+  cx.fillStyle=shade(a.hair,20);
+  cx.fillRect(x+2,y-12+bob,4,1);cx.fillRect(x+8,y-12+bob,4,1);
+  // Mouth
+  cx.fillStyle=P.skinShade;cx.fillRect(x+5,y-3+bob,4,1);
+
+  // === HAIR ===
+  cx.fillStyle=a.hair;
+  if(a.hairStyle==='short'){
+    cx.fillRect(x,y-16+bob,14,6);
+    cx.fillRect(x,y-14+bob,2,6);
+    cx.fillRect(x+12,y-14+bob,2,4);
+    cx.fillStyle=shade(a.hair,20);
+    cx.fillRect(x+1,y-15+bob,12,2);
+  }else if(a.hairStyle==='wavy'){
+    cx.fillRect(x-1,y-17+bob,16,7);
+    cx.fillRect(x-1,y-14+bob,2,10);
+    cx.fillRect(x+13,y-14+bob,2,8);
+    cx.fillStyle=shade(a.hair,20);
+    cx.fillRect(x,y-16+bob,14,2);
+  }else if(a.hairStyle==='long'){
+    cx.fillRect(x-1,y-17+bob,16,7);
+    cx.fillRect(x-2,y-14+bob,3,18);
+    cx.fillRect(x+13,y-14+bob,3,18);
+    cx.fillStyle=shade(a.hair,15);
+    cx.fillRect(x,y-16+bob,14,2);
+    cx.fillRect(x-1,y-6+bob,2,8);
+    cx.fillRect(x+13,y-6+bob,2,8);
+  }else if(a.hairStyle==='pony'){
+    cx.fillRect(x,y-17+bob,14,7);
+    cx.fillRect(x,y-14+bob,2,6);
+    cx.fillRect(x+12,y-14+bob,2,4);
+    // Ponytail
+    cx.fillRect(x+12,y-14+bob,6,3);
+    cx.fillRect(x+16,y-12+bob,3,8);
+    cx.fillStyle=shade(a.hair,15);
+    cx.fillRect(x+1,y-16+bob,12,2);
+  }
+
+  // === HOVER HIGHLIGHT ===
+  if(isH){
+    cx.strokeStyle=a.color;cx.lineWidth=2;
+    cx.strokeRect(x-8,y-20+bob,30,60);
+    // Name plate bg
+    const tw=a.name.length*5.5+14;
+    cx.fillStyle='rgba(8,10,24,0.9)';
+    cx.fillRect(x+7-tw/2,y-32+bob,tw,13);
+    cx.strokeStyle=a.color;cx.lineWidth=1;
+    cx.strokeRect(x+7-tw/2,y-32+bob,tw,13);
+    cx.fillStyle=a.color;
+    cx.font='7px "Press Start 2P"';cx.textAlign='center';
+    cx.fillText(a.name,x+7,y-22+bob);
+    cx.textAlign='left';
+  }
+
+  a.hitBox={x:x-8,y:y-20,w:30,h:60};
+}
+
+// ============ DRAW PLANT (detailed) ============
+function drawPlant(x,y){
+  // Pot
+  pxRect(x,y+10,14,14,'#7a5a40',P.outline);
+  cx.fillStyle='#8a6a50';cx.fillRect(x+1,y+11,12,3);
+  pxRect(x-2,y+8,18,4,'#8a6a50',P.outline);
+  // Dirt
+  cx.fillStyle='#4a3828';cx.fillRect(x+2,y+8,10,3);
+  // Stems & leaves
+  cx.fillStyle='#2a8a4a';
+  cx.fillRect(x+5,y-8,2,18);cx.fillRect(x+8,y-4,2,14);
+  cx.fillStyle='#3aaa5a';
+  cx.fillRect(x+1,y-10,6,5);cx.fillRect(x+7,y-6,6,5);
+  cx.fillRect(x+3,y-16,5,7);
+  cx.fillStyle='#4ac06a';
+  cx.fillRect(x+2,y-14,3,3);cx.fillRect(x+8,y-4,4,2);
+}
+
+// ============ DRAW COFFEE MUG ============
+function drawMug(x,y){
+  pxRect(x,y,8,10,'#5a4a3a',P.outline);
+  cx.fillStyle='#6a5a4a';cx.fillRect(x+1,y+1,6,3);
+  cx.fillStyle='#5a4a3a';cx.fillRect(x+8,y+3,3,4);cx.fillRect(x+10,y+3,1,2);
+  // Steam
+  if(Math.sin(frame*0.04+x)>0){
+    cx.fillStyle='rgba(180,180,220,0.25)';
+    cx.fillRect(x+2,y-4,1,3);cx.fillRect(x+5,y-5,1,3);
+  }
+}
+
+// ============ DRAW SERVER RACK ============
+function drawRack(x,y){
+  pxRect(x,y,24,52,'#252838',P.outline);
+  cx.fillStyle='#1a1c28';
+  for(let i=0;i<4;i++){
+    cx.fillRect(x+2,y+3+i*12,20,10);
+    // Vents
+    cx.fillStyle='#2a2c3a';
+    for(let v=0;v<3;v++) cx.fillRect(x+4+v*6,y+5+i*12,4,1);
+    cx.fillStyle='#1a1c28';
+    // LEDs
+    const on1=Math.sin(frame*0.05+i*2.3+x)>0;
+    const on2=Math.sin(frame*0.03+i*1.7+x+1)>0;
+    cx.fillStyle=on1?'#0f0':'#1a2a1a';cx.fillRect(x+16,y+5+i*12,3,3);
+    cx.fillStyle=on2?'#f80':'#2a1a0a';cx.fillRect(x+12,y+5+i*12,3,3);
+  }
+  // Top vent
+  cx.fillStyle='#2a2c3a';cx.fillRect(x+2,y+1,20,2);
+}
+
+// ============ DRAW WHITEBOARD ============
+function drawBoard(x,y,w,h){
+  pxRect(x,y,w,h,'#3a3d5a',P.outline);
+  pxRect(x+3,y+3,w-6,h-6,'#bbc4d8','#8890a0');
+  // Content
+  cx.fillStyle='#6670a0';
+  for(let i=0;i<3;i++){
+    const lw=w*0.4+Math.sin(i*2)*w*0.15;
+    cx.fillRect(x+8,y+10+i*9,lw,2);
+  }
+  // Marker tray
+  cx.fillStyle='#3a3d5a';cx.fillRect(x+5,y+h-2,w-10,4);
+  cx.fillStyle='#f44';cx.fillRect(x+10,y+h-1,8,2);
+  cx.fillStyle='#44f';cx.fillRect(x+22,y+h-1,8,2);
+}
+
+// ============ DRAW PAPERS ============
+function drawPapers(x,y){
+  cx.fillStyle='#ddd';cx.fillRect(x+2,y-1,10,13);
+  cx.fillStyle='#eee';cx.fillRect(x,y,10,13);
+  cx.fillStyle='#aab';
+  cx.fillRect(x+2,y+2,6,1);cx.fillRect(x+2,y+4,7,1);cx.fillRect(x+2,y+6,5,1);cx.fillRect(x+2,y+8,6,1);
+}
+
+// ============ DRAW CEILING LIGHT ============
+function drawLight(x,y,on){
+  cx.fillStyle='#555a7a';cx.fillRect(x,y,30,4);
+  cx.fillStyle='#444a6a';cx.fillRect(x+4,y+4,22,3);
+  if(on){
+    cx.fillStyle='rgba(255,255,220,0.03)';
+    cx.beginPath();cx.moveTo(x+4,y+7);cx.lineTo(x-10,y+60);cx.lineTo(x+40,y+60);cx.lineTo(x+26,y+7);cx.fill();
+  }
+}
+
+// ============ DATA FLOW PARTICLES ============
+const flows=[
+  {fx:310,fy:140,tx:376,ty:140,c:'#4B8BF5',s:0.0008},
+  {fx:660,fy:140,tx:726,ty:140,c:'#1CE669',s:0.001},
+  {fx:515,fy:240,tx:515,ty:296,c:'#7c6aff',s:0.0012},
+  {fx:376,fy:390,tx:320,ty:390,c:'#7c6aff',s:0.0009},
+  {fx:660,fy:390,tx:726,ty:390,c:'#7c6aff',s:0.0011},
+  {fx:160,fy:510,tx:160,ty:566,c:'#00D4FF',s:0.001},
+  {fx:515,fy:480,tx:515,ty:536,c:'#7c6aff',s:0.0008},
+  {fx:880,fy:510,tx:880,ty:566,c:'#F7941D',s:0.0007},
+];
+
+function drawFlows(t){
+  flows.forEach(f=>{
+    for(let p=0;p<3;p++){
+      const tt=((t*f.s)-p*0.15)%1;
+      if(tt<0)return;
+      const px=f.fx+(f.tx-f.fx)*tt,py=f.fy+(f.ty-f.fy)*tt;
+      const a=0.6-p*0.2;
+      cx.fillStyle=f.c;cx.globalAlpha=a;
+      cx.fillRect(px-2,py-2,5,5);
+      cx.globalAlpha=a*0.4;
+      cx.fillRect(px-3,py-3,7,7);
+    }
+  });
+  cx.globalAlpha=1;
+}
+
+// ============ WALKER UPDATE ============
+function updateWalkers(t){
+  agents.filter(a=>a.walking).forEach(a=>{
+    if(!a.wt)a.wt=0;if(!a.ws)a.ws=0;
+    a.wt+=0.0004;
+    if(a.wt>=1){a.wt=0;a.ws=(a.ws+1)%(a.walkPath.length-1);}
+    const p1=a.walkPath[a.ws],p2=a.walkPath[a.ws+1];
+    a.x=p1.x+(p2.x-p1.x)*a.wt;
+    a.y=p1.y+(p2.y-p1.y)*a.wt;
+  });
+}
+
+// ============ MAIN RENDER ============
+function render(t){
+  cx.clearRect(0,0,W,H);
+  frame++;
+
+  // Background
+  cx.fillStyle='#10121c';cx.fillRect(0,0,W,H);
+
+  // Draw rooms
+  rooms.forEach(drawRoom);
+
+  // Ceiling lights
+  rooms.forEach(r=>{
+    drawLight(r.x+r.w/2-15,r.y+2,true);
+    if(r.w>300) drawLight(r.x+r.w/2+60,r.y+2,true);
+  });
+
+  // === RESEARCH furniture ===
+  drawDesk(120,80);drawMon(128,80,220,'80%');drawChair(90,92);
+  drawDesk(120,160);drawMon(128,160,220,'80%');drawChair(90,172);
+  drawBoard(200,38,80,42);
+  drawPlant(268,190);drawMug(168,84);drawPapers(175,88);
+
+  // === CONTENT furniture ===
+  drawDesk(470,66);drawMon(478,66,140,'70%');drawChair(440,78);
+  drawDesk(470,136);drawMon(478,136,140,'70%');drawChair(440,148);
+  drawDesk(470,182);drawMon(478,182,140,'70%');drawChair(440,194);
+  drawPlant(618,200);drawPapers(530,72);drawPapers(535,142);
+
+  // === CREATIVE furniture ===
+  drawDesk(820,80);drawMon(828,80,280,'70%');drawChair(790,92);
+  drawDesk(820,160);drawMon(828,160,280,'70%');drawChair(790,172);
+  drawPlant(1030,50);drawMug(870,84);
+  // Drawing tablet
+  pxRect(854,86,18,12,'#3a3555',P.outline);
+  cx.fillStyle='#5050a0';cx.fillRect(856,88,14,8);
+  // Pen
+  cx.fillStyle='#888';cx.fillRect(872,84,2,10);
+
+  // === ENGINEERING furniture ===
+  drawDesk(120,340);drawMon(128,340,190,'90%');drawChair(90,352);
+  drawDesk(120,420);drawMon(128,420,190,'90%');drawChair(90,432);
+  drawDesk(260,380);drawMon(268,380,190,'90%');drawChair(230,392);
+  drawBoard(188,300,70,36);drawMug(172,344);
+
+  // === CLAUDE CODE HQ ===
+  drawBoard(410,308,100,40);
+  cx.fillStyle='#7c6aff';cx.font='7px "Press Start 2P"';
+  cx.fillText('STATUS: ONLINE',420,330);
+  // Big screen
+  pxRect(448,370,60,44,'#222',P.outline);
+  cx.fillStyle='#7c6aff';
+  const glow=0.12+Math.sin(t*0.002)*0.08;
+  cx.globalAlpha=glow;cx.fillRect(450,372,56,40);cx.globalAlpha=1;
+  cx.fillStyle='#fff';cx.font='7px "Press Start 2P"';
+  cx.fillText('CLAUDE',458,392);cx.fillText('CODE',464,404);
+  // Pulse rings
+  [25,38].forEach((r,i)=>{
+    const pr=r+Math.sin(t*0.003+i)*4;
+    cx.strokeStyle='#7c6aff';cx.globalAlpha=0.2-i*0.08;cx.lineWidth=1;
+    cx.beginPath();cx.arc(478,392,pr,0,Math.PI*2);cx.stroke();
+  });
+  cx.globalAlpha=1;
+
+  // === OPERATIONS furniture ===
+  drawDesk(820,340);drawMon(828,340,25,'90%');drawChair(790,352);
+  drawDesk(820,420);drawMon(828,420,25,'90%');drawChair(790,432);
+  drawDesk(960,380);drawMon(968,380,25,'90%');drawChair(930,392);
+  drawMug(880,344);drawPlant(1040,470);
+  // Dashboard on wall
+  pxRect(950,304,80,36,'#252838',P.outline);
+  cx.fillStyle='#1a1';cx.fillRect(956,310,14,16);
+  cx.fillStyle='#fa0';cx.fillRect(974,316,14,10);
+  cx.fillStyle='#48f';cx.fillRect(992,308,14,18);
+  cx.fillStyle='#f44';cx.fillRect(1010,314,14,12);
+
+  // === MANAGEMENT furniture ===
+  drawDesk(120,606);drawMon(128,606,50,'90%');drawChair(90,618);
+  drawDesk(260,606);drawMon(268,606,50,'90%');drawChair(230,618);
+  drawPlant(50,710);
+  // Wall dashboard
+  pxRect(110,570,100,30,'#252838',P.outline);
+  cx.fillStyle='#FFD700';cx.globalAlpha=0.7;
+  cx.fillRect(116,576,18,10);cx.fillStyle='#1CE669';cx.fillRect(138,576,18,10);
+  cx.fillStyle='#4B8BF5';cx.fillRect(160,576,18,10);cx.fillStyle='#F7941D';cx.fillRect(182,576,18,10);
+  cx.globalAlpha=1;
+  // Mini chart
+  const bars=[8,12,16,10,14,18,12];
+  cx.fillStyle='#FFD700';
+  bars.forEach((h,i)=>{cx.fillRect(118+i*10,596-h,6,h);});
+
+  // === SERVER ROOM ===
+  for(let i=0;i<7;i++) drawRack(390+i*34,570);
+  // Floor cables
+  cx.strokeStyle='#00D4FF';cx.globalAlpha=0.15;cx.lineWidth=1;cx.setLineDash([4,4]);
+  cx.beginPath();cx.moveTo(400,628);cx.lineTo(620,628);cx.stroke();
+  cx.beginPath();cx.moveTo(400,640);cx.lineTo(620,640);cx.stroke();
+  cx.setLineDash([]);cx.globalAlpha=1;
+  // Ambient glow
+  cx.fillStyle='#7c6aff';cx.globalAlpha=0.02+Math.sin(t*0.001)*0.01;
+  cx.fillRect(372,532,296,230);cx.globalAlpha=1;
+
+  // === BREAK ROOM ===
+  // Coffee machine
+  pxRect(770,610,22,38,'#3a3a4a',P.outline);
+  cx.fillStyle='#4a4a5a';cx.fillRect(770,605,22,8);
+  cx.fillStyle='#f44';cx.fillRect(786,622,3,3);
+  cx.fillStyle='#0f0';cx.fillRect(786,628,3,3);
+  // Table
+  pxRect(830,608,56,28,'#4a4565',P.outline);
+  cx.fillStyle='#555075';cx.fillRect(831,604,54,6);
+  drawMug(845,596);drawMug(862,598);
+  // Couch
+  pxRect(920,614,70,24,'#4a3060',P.outline);
+  cx.fillStyle='#5a3870';cx.fillRect(918,608,74,8);cx.fillRect(918,608,6,30);cx.fillRect(986,608,6,30);
+  cx.fillStyle='#604080';cx.fillRect(924,616,14,8);cx.fillRect(944,616,14,8);cx.fillRect(964,616,14,8);
+  drawPlant(1040,660);
+  // Vending machine
+  pxRect(740,574,26,44,'#2a2d44',P.outline);
+  cx.fillStyle='#00D4FF';cx.globalAlpha=0.2;cx.fillRect(744,580,18,24);cx.globalAlpha=1;
+  cx.fillStyle='#334';cx.fillRect(744,608,18,6);
+
+  // Data flows
+  drawFlows(t);
+
+  // Update walkers
+  updateWalkers(t);
+
+  // Draw all agents
+  agents.forEach(a=>drawPerson(a,t));
+
+  requestAnimationFrame(render);
+}
+
+// ============ MOUSE ============
+const officeEl=document.getElementById('office');
+function getPos(e){
+  const r=cv.getBoundingClientRect();
+  return{x:(e.clientX-r.left)*(W/r.width),y:(e.clientY-r.top)*(H/r.height)};
+}
+officeEl.addEventListener('mousemove',e=>{
+  const p=getPos(e);let found=null;
+  for(let i=agents.length-1;i>=0;i--){
+    const a=agents[i];if(!a.hitBox)continue;
+    const h=a.hitBox;
+    if(p.x>=h.x&&p.x<=h.x+h.w&&p.y>=h.y&&p.y<=h.y+h.h){found=a;break;}
+  }
+  hovered=found;
+  const tip=document.getElementById('tip');
+  if(found){
+    officeEl.style.cursor='pointer';
+    document.getElementById('tn').textContent=found.name;
+    document.getElementById('tn').style.color=found.color;
+    document.getElementById('tr').textContent=found.dept+' — '+found.role;
+    document.getElementById('tt').innerHTML=found.tools.map(t=>`<span class="tip-t">${t}</span>`).join('');
+    tip.classList.add('on');
+    tip.style.left=Math.min(e.clientX+16,innerWidth-270)+'px';
+    tip.style.top=(e.clientY-20)+'px';
+  }else{
+    officeEl.style.cursor='default';
+    tip.classList.remove('on');
+  }
+});
+officeEl.addEventListener('mouseleave',()=>{hovered=null;document.getElementById('tip').classList.remove('on');});
+
+requestAnimationFrame(render);
+</script>
+</body>
+</html>
