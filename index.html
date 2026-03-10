@@ -421,15 +421,18 @@ function drawPerson(a,time){
   if(isH){
     cx.strokeStyle=a.color;cx.lineWidth=2;
     cx.strokeRect(x-8,y-20+bob,30,60);
-    // Name plate bg
-    const tw=a.name.length*5.5+14;
+    // Name plate bg — measure actual text width
+    cx.font='7px "Press Start 2P"';
+    const tw=cx.measureText(a.name).width+14;
+    const tagX=Math.max(4,Math.min(x+7-tw/2,W-tw-4));
+    const tagY=y-32+bob;
     cx.fillStyle='rgba(8,10,24,0.9)';
-    cx.fillRect(x+7-tw/2,y-32+bob,tw,13);
+    cx.fillRect(tagX,tagY,tw,13);
     cx.strokeStyle=a.color;cx.lineWidth=1;
-    cx.strokeRect(x+7-tw/2,y-32+bob,tw,13);
+    cx.strokeRect(tagX,tagY,tw,13);
     cx.fillStyle=a.color;
-    cx.font='7px "Press Start 2P"';cx.textAlign='center';
-    cx.fillText(a.name,x+7,y-22+bob);
+    cx.textAlign='center';
+    cx.fillText(a.name,tagX+tw/2,tagY+10);
     cx.textAlign='left';
   }
 
@@ -606,88 +609,189 @@ function render(t){
   drawBoard(188,300,70,36);drawMug(172,344);
 
   // === CLAUDE CODE HQ ===
-  drawBoard(410,308,100,40);
-  cx.fillStyle='#7c6aff';cx.font='7px "Press Start 2P"';
-  cx.fillText('STATUS: ONLINE',420,330);
-  // Big screen
-  pxRect(448,370,60,44,'#222',P.outline);
+  // Big screen (central, prominent)
+  pxRect(390,310,80,56,'#1a1a2a',P.outline);
+  // Screen bezel
+  cx.fillStyle='#2a2a3a';cx.fillRect(391,311,78,54);
+  cx.fillStyle='#0c0e18';cx.fillRect(394,314,72,48);
+  // Screen content — animated matrix-like
   cx.fillStyle='#7c6aff';
-  const glow=0.12+Math.sin(t*0.002)*0.08;
-  cx.globalAlpha=glow;cx.fillRect(450,372,56,40);cx.globalAlpha=1;
-  cx.fillStyle='#fff';cx.font='7px "Press Start 2P"';
-  cx.fillText('CLAUDE',458,392);cx.fillText('CODE',464,404);
-  // Pulse rings
-  [25,38].forEach((r,i)=>{
+  const glow=0.15+Math.sin(t*0.002)*0.08;
+  cx.globalAlpha=glow;cx.fillRect(394,314,72,48);cx.globalAlpha=1;
+  // Text on screen
+  cx.fillStyle='#fff';cx.font='9px "Press Start 2P"';
+  cx.textAlign='center';
+  cx.fillText('CLAUDE CODE',430,340);
+  // Status with blinking dot
+  cx.fillStyle=Math.sin(t*0.003)>0?'#1CE669':'#0a5a2a';
+  cx.fillRect(410,348,6,6);
+  cx.fillStyle='#1CE669';cx.font='7px "Press Start 2P"';
+  cx.fillText('ONLINE',440,354);
+  cx.textAlign='left';
+  // Monitor stand
+  cx.fillStyle='#333';cx.fillRect(424,366,12,6);cx.fillRect(418,370,24,4);
+  // Pulse rings around screen
+  [45,60].forEach((r,i)=>{
     const pr=r+Math.sin(t*0.003+i)*4;
-    cx.strokeStyle='#7c6aff';cx.globalAlpha=0.2-i*0.08;cx.lineWidth=1;
-    cx.beginPath();cx.arc(478,392,pr,0,Math.PI*2);cx.stroke();
+    cx.strokeStyle='#7c6aff';cx.globalAlpha=0.15-i*0.06;cx.lineWidth=1;
+    cx.beginPath();cx.arc(430,340,pr,0,Math.PI*2);cx.stroke();
   });
   cx.globalAlpha=1;
 
-  // === BED + SLEEPING HUMAN ("Me") in Claude Code HQ ===
+  // === "Me" CORNER — right side of Claude Code HQ (x:540-660, y:380-480) ===
+
+  // ---- BED ----
   // Bed frame
-  pxRect(380,420,70,36,'#3a2848',P.outline);
+  pxRect(556,440,70,36,'#3a2848',P.outline);
+  // Bed legs
+  cx.fillStyle='#2a1838';cx.fillRect(557,472,4,6);cx.fillRect(621,472,4,6);
   // Mattress
-  pxRect(382,418,66,30,'#4a4078',P.outline);
-  cx.fillStyle='#544888';cx.fillRect(383,419,64,6); // pillow area highlight
+  pxRect(558,438,66,30,'#4a4078',P.outline);
+  cx.fillStyle='#544888';cx.fillRect(559,439,64,6);
   // Pillow
-  pxRect(384,416,20,12,'#c8c0e0',P.outline);
-  cx.fillStyle='#d8d0f0';cx.fillRect(385,417,18,4); // pillow highlight
+  pxRect(560,434,20,14,'#c8c0e0',P.outline);
+  cx.fillStyle='#d8d0f0';cx.fillRect(561,435,18,4);
   // Blanket
-  pxRect(404,424,42,22,'#5a48a0',P.outline);
-  cx.fillStyle='#6a58b0';cx.fillRect(405,425,40,6); // blanket fold highlight
-  cx.fillStyle='#4a3890';cx.fillRect(405,441,40,4); // blanket bottom shadow
-  // Blanket pattern stripes
+  pxRect(580,442,44,24,'#5a48a0',P.outline);
+  cx.fillStyle='#6a58b0';cx.fillRect(581,443,42,6);
+  cx.fillStyle='#4a3890';cx.fillRect(581,460,42,4);
+  // Blanket stripes
   cx.fillStyle='#7060c0';
-  cx.fillRect(410,430,8,2);cx.fillRect(425,430,8,2);cx.fillRect(440,430,4,2);
+  cx.fillRect(586,450,8,2);cx.fillRect(600,450,8,2);cx.fillRect(614,450,4,2);
 
-  // Sleeping person — head on pillow
-  // Head
-  pxRect(390,410,12,14,P.skinBase,P.skinOutline);
-  cx.fillStyle=P.skinHi;cx.fillRect(391,412,10,4);
-  cx.fillStyle=P.skinShade;cx.fillRect(391,420,4,2);cx.fillRect(397,420,4,2);
-  // Closed eyes (sleeping) — "zzz" style
-  cx.fillStyle='#666';
-  cx.fillRect(392,416,3,1);cx.fillRect(397,416,3,1);
-  // Sleeping smile
-  cx.fillStyle=P.skinShade;cx.fillRect(394,419,4,1);
-  // Hair (messy bed hair)
+  // Sleeping person head on pillow
+  pxRect(566,428,12,14,P.skinBase,P.skinOutline);
+  cx.fillStyle=P.skinHi;cx.fillRect(567,430,10,4);
+  cx.fillStyle=P.skinShade;cx.fillRect(567,438,4,2);cx.fillRect(573,438,4,2);
+  // Closed eyes
+  cx.fillStyle='#666';cx.fillRect(568,434,3,1);cx.fillRect(573,434,3,1);
+  // Happy sleeping smile
+  cx.fillStyle=P.skinShade;
+  cx.fillRect(570,437,4,1);cx.fillRect(569,436,1,1);cx.fillRect(574,436,1,1);
+  // Messy bed hair
   cx.fillStyle='#5a3020';
-  cx.fillRect(389,408,14,5);cx.fillRect(389,410,2,6);cx.fillRect(401,410,2,4);
-  cx.fillStyle='#6a4030';cx.fillRect(390,408,12,2);
-  // Arm sticking out of blanket
-  cx.fillStyle=P.skinBase;cx.fillRect(402,426,4,5);
-  cx.fillStyle=P.skinShade;cx.fillRect(402,430,4,2);
+  cx.fillRect(565,426,14,5);cx.fillRect(565,428,2,6);cx.fillRect(577,428,2,4);
+  // Wild strand sticking up
+  cx.fillRect(570,422,2,5);cx.fillRect(574,423,2,4);
+  cx.fillStyle='#6a4030';cx.fillRect(566,426,12,2);
+  // Arm out of blanket
+  cx.fillStyle=P.skinBase;cx.fillRect(578,444,4,5);
+  cx.fillStyle=P.skinShade;cx.fillRect(578,448,4,2);
+  // Pajama shoulder
+  cx.fillStyle='#7070d0';cx.fillRect(576,438,6,6);
+  cx.fillStyle='#8080e0';cx.fillRect(577,439,4,2);
+  // Slippers on floor next to bed (one flipped!)
+  pxRect(550,472,10,5,'#6050a0',P.outline);cx.fillStyle='#7060b0';cx.fillRect(551,473,8,2);
+  pxRect(540,474,10,5,'#6050a0',P.outline);cx.fillStyle='#7060b0';cx.fillRect(541,475,8,2);
 
-  // Pajama visible on shoulder
-  cx.fillStyle='#7070d0';cx.fillRect(400,420,6,6);
-  cx.fillStyle='#8080e0';cx.fillRect(401,421,4,2);
-
-  // "Me" label above
-  cx.fillStyle='rgba(8,10,24,0.85)';
-  cx.fillRect(388,396,28,13);
-  cx.strokeStyle='#7c6aff';cx.lineWidth=1;
-  cx.strokeRect(388,396,28,13);
+  // "Me" label
+  cx.fillStyle='rgba(8,10,24,0.9)';cx.fillRect(564,414,28,13);
+  cx.strokeStyle='#7c6aff';cx.lineWidth=1;cx.strokeRect(564,414,28,13);
   cx.fillStyle='#fff';cx.font='8px "Press Start 2P"';
-  cx.textAlign='center';cx.fillText('Me',402,406);cx.textAlign='left';
+  cx.textAlign='center';cx.fillText('Me',578,424);cx.textAlign='left';
 
-  // Zzz floating animation
+  // Zzz floating
   const zt=t*0.001;
-  const zAlpha=[0.7,0.5,0.3];
-  const zSizes=[7,6,5];
-  cx.font='bold 9px "Press Start 2P"';
   for(let i=0;i<3;i++){
-    const zy=400-i*14-Math.sin(zt+i)*4;
-    const zx=410+i*8+Math.cos(zt+i*0.7)*3;
-    cx.fillStyle='#7c6aff';cx.globalAlpha=zAlpha[i]-Math.sin(zt*2+i)*0.15;
-    cx.font=`${zSizes[i]}px "Press Start 2P"`;
+    const zy=418-i*14-Math.sin(zt+i)*4;
+    const zx=586+i*8+Math.cos(zt+i*0.7)*3;
+    cx.fillStyle='#7c6aff';cx.globalAlpha=0.7-i*0.2-Math.sin(zt*2+i)*0.1;
+    cx.font=`${7-i}px "Press Start 2P"`;
     cx.fillText('z',zx,zy);
   }
   cx.globalAlpha=1;
 
-  // Bed legs
-  cx.fillStyle='#2a1838';
-  cx.fillRect(381,452,4,6);cx.fillRect(445,452,4,6);
+  // ---- NIGHTSTAND with coffee + phone ----
+  pxRect(630,448,24,20,'#3a3050',P.outline);
+  cx.fillStyle='#4a4060';cx.fillRect(631,449,22,4); // top surface
+  cx.fillStyle='#2e2640';cx.fillRect(635,456,4,10); // leg
+  cx.fillRect(648,456,4,10);
+  // Overflowing coffee mug (been there hours)
+  pxRect(633,440,10,10,'#5a4a3a',P.outline);
+  cx.fillStyle='#3a2a1a';cx.fillRect(634,441,8,4); // coffee inside, almost full
+  cx.fillStyle='#5a4a3a';cx.fillRect(643,443,3,4);cx.fillRect(645,443,1,2); // handle
+  // Coffee ring stain on nightstand!
+  cx.strokeStyle='#4a3828';cx.lineWidth=1;cx.globalAlpha=0.4;
+  cx.beginPath();cx.arc(645,452,5,0,Math.PI*2);cx.stroke();
+  cx.globalAlpha=1;
+  // Phone with notification light
+  pxRect(648,441,10,16,'#222',P.outline);
+  cx.fillStyle='#333';cx.fillRect(649,442,8,14);
+  cx.fillStyle='#111';cx.fillRect(650,444,6,10); // screen (off)
+  // Notification blinking
+  cx.fillStyle=Math.sin(t*0.004)>0.3?'#ff4757':'#330a0a';
+  cx.fillRect(653,442,2,2);
+
+  // ---- EXERCISE BIKE (unused, dusty) ----
+  // Frame
+  cx.fillStyle='#555';
+  cx.fillRect(544,392,3,30); // main post
+  cx.fillRect(538,395,14,3); // handlebar stem
+  cx.fillRect(535,390,4,8); // left handle
+  cx.fillRect(549,390,4,8); // right handle
+  cx.fillRect(542,418,8,4); // bottom bar
+  cx.fillRect(536,420,4,8); // left foot
+  cx.fillRect(552,420,4,8); // right foot
+  // Seat
+  pxRect(540,388,12,6,'#3a3060',P.outline);
+  cx.fillStyle='#4a4070';cx.fillRect(541,389,10,2);
+  // Wheel
+  cx.strokeStyle='#444';cx.lineWidth=2;
+  cx.beginPath();cx.arc(546,414,8,0,Math.PI*2);cx.stroke();
+  cx.fillStyle='#333';cx.beginPath();cx.arc(546,414,3,0,Math.PI*2);cx.fill();
+  // Pedals (hanging limp — unused!)
+  cx.fillStyle='#555';cx.fillRect(538,412,4,2);cx.fillRect(552,416,4,2);
+  // Dust particles on bike
+  cx.fillStyle='#8888aa';cx.globalAlpha=0.3;
+  cx.fillRect(537,389,1,1);cx.fillRect(550,391,1,1);cx.fillRect(543,387,1,1);
+  cx.globalAlpha=1;
+  // Cobweb on handlebar!
+  cx.strokeStyle='#667';cx.globalAlpha=0.2;cx.lineWidth=0.5;
+  cx.beginPath();cx.moveTo(535,390);cx.lineTo(530,385);cx.lineTo(536,386);cx.stroke();
+  cx.beginPath();cx.moveTo(535,390);cx.lineTo(532,392);cx.stroke();
+  cx.globalAlpha=1;
+
+  // ---- PIZZA BOX on floor ----
+  pxRect(530,460,22,16,'#c4a050',P.outline);
+  cx.fillStyle='#d4b060';cx.fillRect(531,461,20,4); // lid
+  cx.fillStyle='#b49040';cx.fillRect(531,465,20,2); // opening line
+  // Grease stain
+  cx.fillStyle='#a08030';cx.globalAlpha=0.4;
+  cx.fillRect(535,467,6,4);cx.fillRect(543,468,4,3);
+  cx.globalAlpha=1;
+  // One slice left visible
+  cx.fillStyle='#e0a030';cx.fillRect(533,468,5,3);
+  cx.fillStyle='#c03020';cx.fillRect(534,469,3,1); // pepperoni
+
+  // ---- CAT sleeping on the bed corner!! ----
+  // Body (curled up ball)
+  cx.fillStyle='#d08030';
+  cx.fillRect(614,440,10,7);cx.fillRect(613,441,12,5);
+  // Head
+  cx.fillRect(612,438,6,5);
+  // Ears
+  cx.fillRect(612,436,2,3);cx.fillRect(616,436,2,3);
+  // Tail curled
+  cx.fillRect(622,441,4,2);cx.fillRect(624,443,3,2);cx.fillRect(625,444,2,2);
+  // Stripes
+  cx.fillStyle='#a06020';
+  cx.fillRect(615,441,2,4);cx.fillRect(619,441,2,4);
+  // Closed eyes
+  cx.fillStyle='#333';cx.fillRect(613,440,2,1);
+
+  // ---- ENERGY DRINK CANS (scattered) ----
+  // Can 1 (standing)
+  pxRect(534,440,5,9,'#2255aa',P.outline);
+  cx.fillStyle='#3366cc';cx.fillRect(535,441,3,3);
+  cx.fillStyle='#aaa';cx.fillRect(535,441,3,1); // top
+  // Can 2 (fallen over)
+  cx.fillStyle='#cc3333';
+  cx.fillRect(526,454,9,5);cx.fillRect(527,455,7,3);
+  cx.fillStyle='#aaa';cx.fillRect(526,455,1,3);
+  // Drip from fallen can
+  cx.fillStyle='#cc3333';cx.globalAlpha=0.3;
+  cx.fillRect(535,456,3,2);cx.fillRect(536,458,2,1);
+  cx.globalAlpha=1;
 
   // === OPERATIONS furniture ===
   drawDesk(820,340);drawMon(828,340,25,'90%');drawChair(790,352);
