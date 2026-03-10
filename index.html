@@ -624,6 +624,71 @@ function render(t){
   });
   cx.globalAlpha=1;
 
+  // === BED + SLEEPING HUMAN ("Me") in Claude Code HQ ===
+  // Bed frame
+  pxRect(380,420,70,36,'#3a2848',P.outline);
+  // Mattress
+  pxRect(382,418,66,30,'#4a4078',P.outline);
+  cx.fillStyle='#544888';cx.fillRect(383,419,64,6); // pillow area highlight
+  // Pillow
+  pxRect(384,416,20,12,'#c8c0e0',P.outline);
+  cx.fillStyle='#d8d0f0';cx.fillRect(385,417,18,4); // pillow highlight
+  // Blanket
+  pxRect(404,424,42,22,'#5a48a0',P.outline);
+  cx.fillStyle='#6a58b0';cx.fillRect(405,425,40,6); // blanket fold highlight
+  cx.fillStyle='#4a3890';cx.fillRect(405,441,40,4); // blanket bottom shadow
+  // Blanket pattern stripes
+  cx.fillStyle='#7060c0';
+  cx.fillRect(410,430,8,2);cx.fillRect(425,430,8,2);cx.fillRect(440,430,4,2);
+
+  // Sleeping person — head on pillow
+  // Head
+  pxRect(390,410,12,14,P.skinBase,P.skinOutline);
+  cx.fillStyle=P.skinHi;cx.fillRect(391,412,10,4);
+  cx.fillStyle=P.skinShade;cx.fillRect(391,420,4,2);cx.fillRect(397,420,4,2);
+  // Closed eyes (sleeping) — "zzz" style
+  cx.fillStyle='#666';
+  cx.fillRect(392,416,3,1);cx.fillRect(397,416,3,1);
+  // Sleeping smile
+  cx.fillStyle=P.skinShade;cx.fillRect(394,419,4,1);
+  // Hair (messy bed hair)
+  cx.fillStyle='#5a3020';
+  cx.fillRect(389,408,14,5);cx.fillRect(389,410,2,6);cx.fillRect(401,410,2,4);
+  cx.fillStyle='#6a4030';cx.fillRect(390,408,12,2);
+  // Arm sticking out of blanket
+  cx.fillStyle=P.skinBase;cx.fillRect(402,426,4,5);
+  cx.fillStyle=P.skinShade;cx.fillRect(402,430,4,2);
+
+  // Pajama visible on shoulder
+  cx.fillStyle='#7070d0';cx.fillRect(400,420,6,6);
+  cx.fillStyle='#8080e0';cx.fillRect(401,421,4,2);
+
+  // "Me" label above
+  cx.fillStyle='rgba(8,10,24,0.85)';
+  cx.fillRect(388,396,28,13);
+  cx.strokeStyle='#7c6aff';cx.lineWidth=1;
+  cx.strokeRect(388,396,28,13);
+  cx.fillStyle='#fff';cx.font='8px "Press Start 2P"';
+  cx.textAlign='center';cx.fillText('Me',402,406);cx.textAlign='left';
+
+  // Zzz floating animation
+  const zt=t*0.001;
+  const zAlpha=[0.7,0.5,0.3];
+  const zSizes=[7,6,5];
+  cx.font='bold 9px "Press Start 2P"';
+  for(let i=0;i<3;i++){
+    const zy=400-i*14-Math.sin(zt+i)*4;
+    const zx=410+i*8+Math.cos(zt+i*0.7)*3;
+    cx.fillStyle='#7c6aff';cx.globalAlpha=zAlpha[i]-Math.sin(zt*2+i)*0.15;
+    cx.font=`${zSizes[i]}px "Press Start 2P"`;
+    cx.fillText('z',zx,zy);
+  }
+  cx.globalAlpha=1;
+
+  // Bed legs
+  cx.fillStyle='#2a1838';
+  cx.fillRect(381,452,4,6);cx.fillRect(445,452,4,6);
+
   // === OPERATIONS furniture ===
   drawDesk(820,340);drawMon(828,340,25,'90%');drawChair(790,352);
   drawDesk(820,420);drawMon(828,420,25,'90%');drawChair(790,432);
