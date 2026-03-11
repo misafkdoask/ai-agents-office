@@ -154,6 +154,11 @@ const agents=[
    tools:['Memory System','Markdown'],color:'#FFD700',hair:'#8899aa',hairStyle:'short',
    x:220,y:630,sitting:true,deskX:260,deskY:606},
 
+  // ORCHESTRATOR (Claude Code HQ center)
+  {id:'orchestrator',name:'Orchestrator',dept:'Core',role:'Central coordinator — routes tasks, manages workflows across all departments',
+   tools:['Claude Code','MCP Protocol','Memory System'],color:'#7c6aff',hair:'#1a1a2e',hairStyle:'short',
+   x:420,y:405,sitting:true,deskX:450,deskY:382},
+
   // WALKERS
   {id:'w1',name:'Data Courier',dept:'Core',role:'Transfers data between departments',
    tools:['Internal Bus'],color:'#7c6aff',hair:'#5a3020',hairStyle:'short',
@@ -637,6 +642,9 @@ function render(t){
     cx.beginPath();cx.arc(430,340,pr,0,Math.PI*2);cx.stroke();
   });
   cx.globalAlpha=1;
+
+  // Orchestrator console & chair
+  drawDesk(410,382);drawChair(426,396);drawMug(458,386);
 
   // === "Me" CORNER — right side of Claude Code HQ (x:540-660, y:380-480) ===
 
